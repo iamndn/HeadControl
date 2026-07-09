@@ -33,6 +33,14 @@ type Node struct {
 	Tags            []string `json:"tags"`
 }
 
+type Route struct {
+	ID         uint64 `json:"id"`
+	Node       *Node  `json:"node"`
+	Prefix     string `json:"prefix"`
+	Advertised bool   `json:"advertised"`
+	Enabled    bool   `json:"enabled"`
+}
+
 type DashboardStats struct {
 	UserCount    int
 	NodeCount    int
@@ -59,4 +67,20 @@ type NodeResponse struct {
 type ErrorResponse struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
+}
+
+type PreAuthKey struct {
+	ID         string `json:"id"`
+	Key        string `json:"key"`
+	User       string `json:"user"`
+	Reusable   bool   `json:"reusable"`
+	Ephemeral  bool   `json:"ephemeral"`
+	Used       bool   `json:"used"`
+	Expiration string `json:"expiration"`
+	CreatedAt  string `json:"createdAt"`
+}
+
+type LogLine struct {
+	Text  string
+	Color string
 }

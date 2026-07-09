@@ -1,0 +1,55 @@
+{{define "logs-content.html"}}
+<div class="page-header">
+    <div class="page-header-info">
+        <h2>System Logs</h2>
+        <p>View Headscale service audit logs and daemon output history</p>
+    </div>
+    <button class="btn btn-primary btn-sm" hx-get="/logs/raw" hx-target="#terminal-screen" hx-swap="innerHTML" style="display: flex; align-items: center; gap: 8px;">
+        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+        <span>Refresh Logs</span>
+    </button>
+</div>
+
+{{if .Error}}
+<div class="error-banner">
+    <i data-lucide="x-circle"></i>
+    <span>{{.Error}}</span>
+</div>
+{{else}}
+
+<div class="table-card" style="padding: 0; border: var(--border-thick) solid var(--border); box-shadow: var(--shadow-lg); overflow: hidden; border-radius: var(--radius-md);">
+    <!-- Terminal Header -->
+    <div style="background: #1e1e2e; color: #a6adc8; padding: 12px 18px; border-bottom: var(--border-width) solid var(--border); display: flex; align-items: center; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; user-select: none;">
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <span style="width: 12px; height: 12px; background: #ef4444; border: 1.5px solid var(--border); border-radius: 50%; display: inline-block;"></span>
+            <span style="width: 12px; height: 12px; background: #fbbf24; border: 1.5px solid var(--border); border-radius: 50%; display: inline-block;"></span>
+            <span style="width: 12px; height: 12px; background: #10b981; border: 1.5px solid var(--border); border-radius: 50%; display: inline-block;"></span>
+            <span style="margin-left: 8px; font-weight: 700; color: #cdd6f4; letter-spacing: 0.02em;">headscale.service</span>
+        </div>
+        <div style="font-weight: 600;">bash — active (200 lines)</div>
+    </div>
+    
+    <!-- Terminal Body -->
+    <div id="terminal-screen" style="background: #09090e; color: #cdd6f4; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; line-height: 1.6; padding: 24px; min-height: 520px; max-height: 650px; overflow-y: auto; overflow-x: auto; white-space: pre-wrap; word-break: break-all;">
+        {{range .Logs}}
+        <div style="color: {{.Color}}; margin-bottom: 4px; font-weight: 500;">{{.Text}}</div>
+        {{end}}
+    </div>
+</div>
+
+<script>
+    (function() {
+        const term = document.getElementById("terminal-screen");
+        if (term) {
+            // Scroll to the bottom of the log screen on initial load
+            term.scrollTop = term.scrollHeight;
+            
+            // Re-scroll to bottom on HTMX refresh swap
+            term.addEventListener("htmx:afterSwap", function() {
+                term.scrollTop = term.scrollHeight;
+            });
+        }
+    })();
+</script>
+{{end}}
+{{end}}

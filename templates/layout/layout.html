@@ -49,6 +49,14 @@
                         <i data-lucide="cpu"></i>
                         Nodes
                     </a>
+                    <a href="/routes" class="nav-link{{if eq .ActivePage "routes"}} active{{end}}" hx-get="/routes" hx-target=".content" hx-push-url="true">
+                        <i data-lucide="route"></i>
+                        Routes
+                    </a>
+                    <a href="/keys" class="nav-link{{if eq .ActivePage "keys"}} active{{end}}" hx-get="/keys" hx-target=".content" hx-push-url="true">
+                        <i data-lucide="key"></i>
+                        Pre-Auth Keys
+                    </a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">System</div>
@@ -59,6 +67,10 @@
                     <a href="/settings" class="nav-link{{if eq .ActivePage "settings"}} active{{end}}" hx-get="/settings" hx-target=".content" hx-push-url="true">
                         <i data-lucide="settings"></i>
                         Settings
+                    </a>
+                    <a href="/logs" class="nav-link{{if eq .ActivePage "logs"}} active{{end}}" hx-get="/logs" hx-target=".content" hx-push-url="true">
+                        <i data-lucide="terminal"></i>
+                        System Logs
                     </a>
                 </div>
             </nav>
@@ -162,6 +174,12 @@
                 {{template "settings-content.html" .}}
                 {{else if eq .ActivePage "policy"}}
                 {{template "policy-content.html" .}}
+                {{else if eq .ActivePage "routes"}}
+                {{template "routes-content.html" .}}
+                {{else if eq .ActivePage "keys"}}
+                {{template "keys-content.html" .}}
+                {{else if eq .ActivePage "logs"}}
+                {{template "logs-content.html" .}}
                 {{end}}
             </div>
         </main>

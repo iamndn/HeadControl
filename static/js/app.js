@@ -193,6 +193,12 @@ HC.refreshNodes = function () {
     }
 };
 
+HC.refreshRoutes = function () {
+    if (typeof htmx !== 'undefined') {
+        htmx.ajax('GET', '/routes/table', { target: '.content', swap: 'innerHTML' });
+    }
+};
+
 document.addEventListener('click', function (e) {
     if (e.target.classList.contains('modal-overlay')) {
         e.target.style.display = 'none';

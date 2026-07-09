@@ -1,0 +1,81 @@
+{{define "keys-table.html"}}
+<div class="table-card" style="margin-bottom: 0;">
+    <div class="table-card-header">
+        <h3 class="table-card-title">{{if .SelectedUser}}Keys for {{.SelectedUser}}{{else}}Active Keys{{end}}</h3>
+        <button class="btn btn-ghost btn-sm" onclick="HC.refreshKeys('{{.SelectedUser}}')">
+            <i data-lucide="refresh-cw" style="width: 14px; height: 14px; margin-right: 4px;"></i>
+            Refresh
+        </button>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Key Prefix</th>
+                    <th>Type</th>
+                    <th>Used</th>
+                    <th>Created</th>
+                    <th>Expiration</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{if .Keys}}
+                {{range .Keys}}
+                <tr id="key-row-{{.ID}}">
+                    <td data-cell="Key Prefix" class="text-mono" style="font-weight: 600; padding: 14px 16px;">
+                        <!-- Safe CSS truncation to protect private key text and avoid template errors -->
+                        <div style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{.Key}}">
+                            {{.Key}}
+                        </div>
+                    </td>
+                    <td data-cell="Type" style="padding: 14px 16px;">
+                        {{if .Reusable}}
+                        <span class="badge badge-info"><span class="badge-dot"></span> Reusable</span>
+                        {{else}}
+                        <span class="badge badge-neutral"><span class="badge-dot"></span> One-time</span>
+                        {{end}}
+                        {{if .Ephemeral}}
+                        <span class="tag">Ephemeral</span>
+                        {{end}}
+                    </td>
+                    <td data-cell="Used" style="padding: 14px 16px;">
+                        {{if .Used}}
+                        <span class="badge badge-danger"><span class="badge-dot"></span> Yes</span>
+                        {{else}}
+                        <span class="badge badge-success"><span class="badge-dot"></span> No</span>
+                        {{end}}
+                    </td>
+                    <td data-cell="Created" class="text-muted" style="padding: 14px 16px;">{{fmtTime .CreatedAt}}</td>
+                    <td data-cell="Expiration" class="text-muted" style="padding: 14px 16px;">{{fmtTime .Expiration}}</td>
+                    <td data-cell="Actions" style="padding: 14px 16px;">
+                        <div class="btn-group">
+                            <button class="btn btn-ghost btn-sm text-danger" 
+                                    hx-post="/api/keys/expire?user={{.User}}&key={{.Key}}" 
+                                    hx-target="#toast-container" 
+                                    hx-swap="beforeend">
+                                <i data-lucide="clock" style="width: 14px; height: 14px; margin-right: 4px;"></i>
+                                Expire
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {{end}}
+                {{else}}
+                <tr>
+                    <td colspan="6" class="text-center text-muted" style="padding: 48px 24px;">
+                        No active pre-auth keys found for this user.
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- Refresh Lucide Icons after HTMX table load/swap -->
+<script>
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{{end}}

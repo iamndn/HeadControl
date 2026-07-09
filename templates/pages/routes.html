@@ -1,0 +1,108 @@
+{{define "routes-content.html"}}
+<div class="page-header">
+    <div class="page-header-info">
+        <h2>Subnet Routes & Exit Nodes</h2>
+        <p>Manage routing and exit node configuration</p>
+    </div>
+    <button class="btn btn-ghost btn-sm" hx-get="/routes/table" hx-target=".content" hx-swap="innerHTML">
+        <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
+        Refresh
+    </button>
+</div>
+
+{{if .Error}}
+<div class="error-banner">
+    <i data-lucide="x-circle"></i>
+    <span>{{.Error}}</span>
+    <button class="btn btn-secondary btn-sm" hx-get="/routes/table" hx-target=".content" hx-swap="innerHTML">Retry</button>
+</div>
+{{else}}
+
+<div id="routes-table-wrap">
+    {{if .Routes}}
+    <div class="table-card">
+        <div class="table-card-header">
+            <h3 class="table-card-title">{{len .Routes}} Routes</h3>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Route ID</th>
+                        <th>Node</th>
+                        <th>Prefix</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Routes}}
+                    <tr id="route-row-{{.ID}}">
+                        <td data-cell="Route ID" class="text-mono">#{{.ID}}</td>
+                        <td data-cell="Node">
+                            {{if .Node}}
+                            <strong>{{.Node.GivenName}}</strong>
+                            {{if and .Node.Name (ne .Node.Name .Node.GivenName)}}<br><span class="text-muted" style="font-size:0.75rem;">{{.Node.Name}}</span>{{end}}
+                            {{else}}
+                            <span class="text-muted">Unknown Node</span>
+                            {{end}}
+                        </td>
+                        <td data-cell="Prefix">
+                            <code class="text-mono" style="font-family:'JetBrains Mono', monospace; font-weight:500;">{{.Prefix}}</code>
+                        </td>
+                        <td data-cell="Type">
+                            {{if or (eq .Prefix "0.0.0.0/0") (eq .Prefix "::/0")}}
+                            <span class="badge badge-info"><span class="badge-dot"></span> Exit Node</span>
+                            {{else}}
+                            <span class="badge badge-neutral"><span class="badge-dot"></span> Subnet Route</span>
+                            {{end}}
+                        </td>
+                        <td data-cell="Status">
+                            {{if .Enabled}}
+                            <span class="badge badge-success"><span class="badge-dot"></span> Enabled</span>
+                            {{else}}
+                            <span class="badge badge-warning"><span class="badge-dot"></span> Disabled</span>
+                            {{end}}
+                        </td>
+                        <td data-cell="Actions">
+                            <div class="btn-group">
+                                {{if .Enabled}}
+                                <button class="btn btn-ghost btn-sm text-danger" 
+                                        hx-post="/api/routes/reject?id={{.ID}}" 
+                                        hx-target="#toast-container" 
+                                        hx-swap="beforeend" 
+                                        hx-on::after-request="if(event.detail.successful){HC.refreshRoutes();}">
+                                    <i data-lucide="x" style="width:14px; height:14px; margin-right:4px;"></i>
+                                    Disable
+                                </button>
+                                {{else}}
+                                <button class="btn btn-primary btn-sm" 
+                                        hx-post="/api/routes/approve?id={{.ID}}" 
+                                        hx-target="#toast-container" 
+                                        hx-swap="beforeend" 
+                                        hx-on::after-request="if(event.detail.successful){HC.refreshRoutes();}">
+                                    <i data-lucide="check" style="width:14px; height:14px; margin-right:4px;"></i>
+                                    Approve
+                                </button>
+                                {{end}}
+                            </div>
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {{else}}
+    <div class="table-card">
+        <div class="empty-state">
+            <i data-lucide="route" style="width:48px;height:48px;stroke-width:1.5;"></i>
+            <h3>No Routes Found</h3>
+            <p>Subnet routes and exit nodes will appear here once advertised by your tailscale clients.</p>
+        </div>
+    </div>
+    {{end}}
+</div>
+{{end}}
+{{end}}

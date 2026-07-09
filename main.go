@@ -36,11 +36,19 @@ func main() {
 	http.HandleFunc("/settings", h.RequireSetup(h.SettingsPage))
 	http.HandleFunc("/policy", h.RequireSetup(h.GetPolicyHandler))
 	http.HandleFunc("/policy/save", h.RequireSetup(h.SavePolicyHandler))
+	http.HandleFunc("/routes", h.RequireSetup(h.RoutesPage))
 
 	http.HandleFunc("/dashboard/summary", h.RequireSetup(h.DashboardSummary))
 	http.HandleFunc("/users/table", h.RequireSetup(h.UsersTable))
 	http.HandleFunc("/nodes/table", h.RequireSetup(h.NodesTable))
 	http.HandleFunc("/nodes/detail", h.RequireSetup(h.NodeDetail))
+	http.HandleFunc("/routes/table", h.RequireSetup(h.RoutesTable))
+	http.HandleFunc("/nodes/{id}/edit", h.RequireSetup(h.EditNodeNameForm))
+	http.HandleFunc("/nodes/{id}/rename", h.RequireSetup(h.RenameNodeInline))
+	http.HandleFunc("/keys", h.RequireSetup(h.PreAuthKeysPage))
+	http.HandleFunc("/keys/table", h.RequireSetup(h.PreAuthKeysTable))
+	http.HandleFunc("/logs", h.RequireSetup(h.LogsPage))
+	http.HandleFunc("/logs/raw", h.RequireSetup(h.LogsRaw))
 
 	http.HandleFunc("/api/users/create", h.RequireSetup(h.CreateUser))
 	http.HandleFunc("/api/users/rename", h.RequireSetup(h.RenameUser))
@@ -53,6 +61,10 @@ func main() {
 	http.HandleFunc("/api/nodes/routes", h.RequireSetup(h.SetNodeRoutes))
 
 	http.HandleFunc("/api/update-settings", h.RequireSetup(h.UpdateSettings))
+	http.HandleFunc("/api/routes/approve", h.RequireSetup(h.ApproveRoute))
+	http.HandleFunc("/api/routes/reject", h.RequireSetup(h.RejectRoute))
+	http.HandleFunc("/api/keys/create", h.RequireSetup(h.CreatePreAuthKey))
+	http.HandleFunc("/api/keys/expire", h.RequireSetup(h.ExpirePreAuthKey))
 
 	log.Printf("HeadControl starting on http://localhost:%s", *port)
 	if err := http.ListenAndServe(":"+*port, nil); err != nil {

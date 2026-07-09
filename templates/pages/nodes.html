@@ -41,7 +41,7 @@
                 <tbody>
                     {{range .Nodes}}
                     <tr id="node-row-{{.ID}}">
-                        <td data-cell="Name">
+                        <td data-cell="Name" id="node-name-cell-{{.ID}}" hx-trigger="dblclick" hx-get="/nodes/{{.ID}}/edit" hx-target="this" hx-swap="innerHTML" style="cursor: pointer;" title="Double click to rename inline">
                             <strong>{{.GivenName}}</strong>
                             {{if and .Name (ne .Name .GivenName)}}<br><span class="text-muted" style="font-size:0.75rem;">{{.Name}}</span>{{end}}
                         </td>

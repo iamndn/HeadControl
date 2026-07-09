@@ -1,7 +1,11 @@
 package handler
 
 import (
+	"bytes"
+	"fmt"
+	"html"
 	"net/http"
+	"os/exec"
 	"strings"
 )
 
@@ -215,4 +219,95 @@ func splitCSV(raw string) []string {
 		}
 	}
 	return out
+}
+
+// EditNodeNameForm returns the HTMX input form for inline editing.
+func (h *Handler) EditNodeNameForm(w http.ResponseWriter, r *http.Request) {
+	nodeID := r.PathValue("id")
+	if nodeID == "" {
+		http.Error(w, "Node ID is required", http.StatusBadRequest)
+		return
+	}
+
+	client, err := h.getClient()
+	if err != nil || client == nil {
+		http.Error(w, "Failed to load settings", http.StatusInternalServerError)
+		return
+	}
+
+	node, apiErr := client.GetNode(nodeID)
+	if apiErr != nil {
+		http.Error(w, apiErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprintf(w, `
+		<form hx-post="/nodes/%s/rename" hx-target="#node-name-cell-%s" hx-swap="innerHTML" style="margin:0; display:flex; gap:8px; align-items:center;">
+			<input type="text" name="newName" value="%s" class="form-input" style="padding:4px 8px; font-size:0.875rem; width:150px; border:2px solid var(--border); box-shadow:2px 2px 0 var(--border);" required autofocus onfocus="this.select()">
+			<button type="submit" style="display:none;"></button>
+		</form>
+	`, nodeID, nodeID, html.EscapeString(node.GivenName))
+}
+
+// RenameNodeInline renames a node via headscale CLI and returns updated row/cell inner HTML.
+func (h *Handler) RenameNodeInline(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	nodeID := r.PathValue("id")
+	newName := r.FormValue("newName")
+
+	if nodeID == "" || newName == "" {
+		http.Error(w, "Node ID and new name are required", http.StatusBadRequest)
+		return
+	}
+
+	client, err := h.getClient()
+	if err != nil || client == nil {
+		http.Error(w, "Failed to load settings", http.StatusInternalServerError)
+		return
+	}
+
+	node, apiErr := client.GetNode(nodeID)
+	if apiErr != nil {
+		http.Error(w, apiErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Safe variadic CLI command execution
+	cmd := exec.Command("headscale", "--config", ConfigPath, "nodes", "rename", node.Name, newName)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	if err := cmd.Run(); err != nil {
+		// Revert to original text and display error toast
+		nameSpan := ""
+		if node.Name != "" && node.Name != node.GivenName {
+			nameSpan = fmt.Sprintf(`<br><span class="text-muted" style="font-size:0.75rem;">%s</span>`, html.EscapeString(node.Name))
+		}
+		fmt.Fprintf(w, `<strong>%s</strong>%s
+		<div class="toast toast-error" hx-swap-oob="beforeend:#toast-container">Failed to rename: %s</div>`,
+			html.EscapeString(node.GivenName), nameSpan, html.EscapeString(strings.TrimSpace(stderr.String())))
+		return
+	}
+
+	// Fetch updated node info
+	updatedNode, apiErr := client.GetNode(nodeID)
+	if apiErr != nil {
+		updatedNode = &model.Node{ID: nodeID, GivenName: newName, Name: node.Name}
+	}
+
+	nameSpan := ""
+	if updatedNode.Name != "" && updatedNode.Name != updatedNode.GivenName {
+		nameSpan = fmt.Sprintf(`<br><span class="text-muted" style="font-size:0.75rem;">%s</span>`, html.EscapeString(updatedNode.Name))
+	}
+
+	fmt.Fprintf(w, `<strong>%s</strong>%s
+	<div class="toast toast-success" hx-swap-oob="beforeend:#toast-container">Device renamed to '%s' successfully!</div>`,
+		html.EscapeString(updatedNode.GivenName), nameSpan, html.EscapeString(updatedNode.GivenName))
 }
