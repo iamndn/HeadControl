@@ -34,6 +34,8 @@ func main() {
 	http.HandleFunc("/users", h.RequireSetup(h.UsersPage))
 	http.HandleFunc("/nodes", h.RequireSetup(h.NodesPage))
 	http.HandleFunc("/settings", h.RequireSetup(h.SettingsPage))
+	http.HandleFunc("/policy", h.RequireSetup(h.GetPolicyHandler))
+	http.HandleFunc("/policy/save", h.RequireSetup(h.SavePolicyHandler))
 
 	http.HandleFunc("/dashboard/summary", h.RequireSetup(h.DashboardSummary))
 	http.HandleFunc("/users/table", h.RequireSetup(h.UsersTable))

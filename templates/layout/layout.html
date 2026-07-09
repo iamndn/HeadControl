@@ -52,7 +52,11 @@
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">System</div>
-                    <a href="/settings" class="nav-link{{if eq .ActivePage " settings"}} active{{end}}" hx-get="/settings" hx-target=".content" hx-push-url="true">
+                    <a href="/policy" class="nav-link{{if eq .ActivePage "policy"}} active{{end}}" hx-get="/policy" hx-target=".content" hx-push-url="true">
+                        <i data-lucide="shield"></i>
+                        ACL Policy
+                    </a>
+                    <a href="/settings" class="nav-link{{if eq .ActivePage "settings"}} active{{end}}" hx-get="/settings" hx-target=".content" hx-push-url="true">
                         <i data-lucide="settings"></i>
                         Settings
                     </a>
@@ -156,6 +160,8 @@
                 {{template "nodes-content.html" .}}
                 {{else if eq .ActivePage "settings"}}
                 {{template "settings-content.html" .}}
+                {{else if eq .ActivePage "policy"}}
+                {{template "policy-content.html" .}}
                 {{end}}
             </div>
         </main>

@@ -1,0 +1,77 @@
+{{define "policy-content.html"}}
+<div class="page-header">
+    <div class="page-header-info">
+        <h2>ACL Policy</h2>
+        <p>Manage Headscale Access Control List (ACL) policies</p>
+    </div>
+</div>
+
+<div class="settings-section">
+    <h3 class="settings-section-title">Editor</h3>
+    <p class="settings-section-desc">Edit and apply security policies in JSON format.</p>
+
+    <form hx-post="/policy/save" hx-target="#policy-feedback" hx-swap="innerHTML" onsubmit="updateTextarea()">
+        <div class="form-group">
+            <textarea id="policy_content" name="policy_content" style="display:none;"></textarea>
+            <div id="editor-container" style="position: relative; height: 550px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); overflow: hidden; margin-bottom: 16px;">
+                <div id="editor" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; font-size: 14px; font-family: 'Fira Code', 'Courier New', Courier, monospace;"></div>
+            </div>
+        </div>
+
+        <div class="btn-group mt-4">
+            <button type="submit" class="btn btn-primary">
+                <span class="htmx-hide-on-request">Apply Policy</span>
+                <span class="htmx-indicator"><span class="spinner"></span></span>
+            </button>
+        </div>
+        <div id="policy-feedback" class="mt-4"></div>
+    </form>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
+<script>
+    (function() {
+        const editorEl = document.getElementById("editor");
+        if (!editorEl) return;
+
+        // Initialize Ace Editor
+        const editor = ace.edit("editor");
+        
+        // Theme mapping helper
+        function getAceTheme() {
+            const darkThemes = ['dark', 'cyberpunk', 'midnight', 'dracula', 'nord', 'synthwave', 'coffee', 'terminal', 'luxury', 'monokai'];
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            return darkThemes.includes(currentTheme) ? 'ace/theme/tomorrow_night' : 'ace/theme/chrome';
+        }
+
+        editor.setTheme(getAceTheme());
+        editor.session.setMode("ace/mode/json");
+        editor.session.setTabSize(2);
+        editor.session.setUseSoftTabs(true);
+        
+        // Populate initial content
+        const policyText = {{.Policy}};
+        editor.setValue(policyText, -1);
+
+        // Sync editor with hidden textarea on submit
+        window.updateTextarea = function() {
+            document.getElementById('policy_content').value = editor.getValue();
+        };
+
+        // Watch for page theme changes to automatically update Ace Editor theme
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                    editor.setTheme(getAceTheme());
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+
+        // Clean up observer if element is detached
+        editorEl.addEventListener('DOMNodeRemovedFromDocument', () => {
+            observer.disconnect();
+        });
+    })();
+</script>
+{{end}}
