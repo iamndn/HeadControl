@@ -25,7 +25,7 @@
                 <select name="user" id="key-user-select" class="form-input" style="width: 100%; border: 2px solid var(--border); box-shadow: 2px 2px 0 var(--border); font-family: inherit; font-weight: 600;"
                         hx-get="/keys/table" hx-target="#keys-table-container" hx-swap="innerHTML" hx-trigger="change">
                     {{range .Users}}
-                    <option value="{{.Name}}" {{if eq .Name $.SelectedUser}}selected{{end}}>{{.Name}}</option>
+                    <option value="{{.ID}}" {{if eq .ID $.SelectedUser}}selected{{end}}>{{.Name}}</option>
                     {{end}}
                 </select>
             </div>
@@ -46,6 +46,7 @@
                     <option value="168h">7 Days (1 Week)</option>
                     <option value="720h">30 Days</option>
                     <option value="8760h">365 Days (1 Year)</option>
+                    <option value="239976h">9999 Days</option>
                 </select>
             </div>
             

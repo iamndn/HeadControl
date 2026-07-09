@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"fmt"
+	"headcontrol/internal/model"
 	"html"
 	"net/http"
 	"os/exec"
@@ -223,7 +224,7 @@ func splitCSV(raw string) []string {
 
 // EditNodeNameForm returns the HTMX input form for inline editing.
 func (h *Handler) EditNodeNameForm(w http.ResponseWriter, r *http.Request) {
-	nodeID := r.PathValue("id")
+	nodeID := r.URL.Query().Get("id")
 	if nodeID == "" {
 		http.Error(w, "Node ID is required", http.StatusBadRequest)
 		return
@@ -243,7 +244,7 @@ func (h *Handler) EditNodeNameForm(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, `
-		<form hx-post="/nodes/%s/rename" hx-target="#node-name-cell-%s" hx-swap="innerHTML" style="margin:0; display:flex; gap:8px; align-items:center;">
+		<form hx-post="/nodes/rename-inline?id=%s" hx-target="#node-name-cell-%s" hx-swap="innerHTML" style="margin:0; display:flex; gap:8px; align-items:center;">
 			<input type="text" name="newName" value="%s" class="form-input" style="padding:4px 8px; font-size:0.875rem; width:150px; border:2px solid var(--border); box-shadow:2px 2px 0 var(--border);" required autofocus onfocus="this.select()">
 			<button type="submit" style="display:none;"></button>
 		</form>
@@ -257,7 +258,7 @@ func (h *Handler) RenameNodeInline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nodeID := r.PathValue("id")
+	nodeID := r.URL.Query().Get("id")
 	newName := r.FormValue("newName")
 
 	if nodeID == "" || newName == "" {
@@ -310,4 +311,60 @@ func (h *Handler) RenameNodeInline(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `<strong>%s</strong>%s
 	<div class="toast toast-success" hx-swap-oob="beforeend:#toast-container">Device renamed to '%s' successfully!</div>`,
 		html.EscapeString(updatedNode.GivenName), nameSpan, html.EscapeString(updatedNode.GivenName))
+}
+
+// ConfigureNode handles renaming a node and editing its tags in a single operation
+func (h *Handler) ConfigureNode(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	nodeID := r.FormValue("nodeId")
+	newName := r.FormValue("newName")
+	tagsCSV := r.FormValue("tags")
+
+	if nodeID == "" {
+		h.renderToast(w, "Node ID is required.", "error")
+		return
+	}
+
+	client, err := h.getClient()
+	if err != nil || client == nil {
+		h.renderToast(w, "Failed to load settings.", "error")
+		return
+	}
+
+	node, apiErr := client.GetNode(nodeID)
+	if apiErr != nil {
+		h.renderToast(w, apiErr.Error(), "error")
+		return
+	}
+
+	// 1. Rename node if name changed
+	if newName != "" && newName != node.GivenName {
+		if _, apiErr := client.RenameNode(nodeID, newName); apiErr != nil {
+			h.renderToast(w, apiErr.Error(), "error")
+			return
+		}
+	}
+
+	// 2. Update tags
+	var tagList []string
+	for _, t := range strings.Split(tagsCSV, ",") {
+		t = strings.TrimSpace(t)
+		if t != "" {
+			if !strings.HasPrefix(t, "tag:") {
+				t = "tag:" + t
+			}
+			tagList = append(tagList, t)
+		}
+	}
+
+	if _, apiErr := client.SetNodeTags(nodeID, tagList); apiErr != nil {
+		h.renderToast(w, apiErr.Error(), "error")
+		return
+	}
+
+	h.renderToast(w, "Device configured successfully!", "success")
 }

@@ -13,6 +13,7 @@
                 <tr>
                     <th>Key Prefix</th>
                     <th>Type</th>
+                    <th>Tags</th>
                     <th>Used</th>
                     <th>Created</th>
                     <th>Expiration</th>
@@ -39,6 +40,15 @@
                         <span class="tag">Ephemeral</span>
                         {{end}}
                     </td>
+                    <td data-cell="Tags" style="padding: 14px 16px;">
+                        {{if .Tags}}
+                        {{range .Tags}}
+                        <span class="tag" style="font-size: 0.75rem; padding: 2px 6px; margin-right: 4px; display: inline-block;">{{.}}</span>
+                        {{end}}
+                        {{else}}
+                        <span class="text-muted">—</span>
+                        {{end}}
+                    </td>
                     <td data-cell="Used" style="padding: 14px 16px;">
                         {{if .Used}}
                         <span class="badge badge-danger"><span class="badge-dot"></span> Yes</span>
@@ -63,7 +73,7 @@
                 {{end}}
                 {{else}}
                 <tr>
-                    <td colspan="6" class="text-center text-muted" style="padding: 48px 24px;">
+                    <td colspan="7" class="text-center text-muted" style="padding: 48px 24px;">
                         No active pre-auth keys found for this user.
                     </td>
                 </tr>

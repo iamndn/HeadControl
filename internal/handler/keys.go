@@ -26,10 +26,10 @@ func (h *Handler) PreAuthKeysPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Select first user by default if available
+	// Select first user's ID by default if available
 	var defaultUser string
 	if len(users) > 0 {
-		defaultUser = users[0].Name
+		defaultUser = users[0].ID
 	}
 
 	var keys []model.PreAuthKey
@@ -90,8 +90,34 @@ func (h *Handler) CreatePreAuthKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// CLI Arguments - Safe variadic slice
-	args := []string{"--config", ConfigPath, "preauthkeys", "create", "-u", user, "--expiration", duration.String()}
+	client, err := h.getClient()
+	if err != nil || client == nil {
+		h.renderToast(w, "Failed to load settings.", "error")
+		return
+	}
+
+	// Resolve user identifier to CLI-compatible User ID
+	users, apiErr := client.ListUsers()
+	if apiErr != nil {
+		h.renderToast(w, apiErr.Error(), "error")
+		return
+	}
+
+	var targetUser *model.User
+	for i := range users {
+		if users[i].ID == user || users[i].Name == user {
+			targetUser = &users[i]
+			break
+		}
+	}
+
+	if targetUser == nil {
+		h.renderToast(w, "User not found.", "error")
+		return
+	}
+
+	// CLI Arguments using the numeric user ID to prevent strconv.ParseUint parsing errors
+	args := []string{"--config", ConfigPath, "preauthkeys", "create", "-u", targetUser.ID, "--expiration", duration.String()}
 	if reusable {
 		args = append(args, "--reusable")
 	}
@@ -132,7 +158,7 @@ func (h *Handler) CreatePreAuthKey(w http.ResponseWriter, r *http.Request) {
 			<p class="text-muted" style="font-size:0.75rem;">Make sure to copy this key now. You won't be able to see it again.</p>
 		</div>
 		<script>HC.refreshKeys('%s');</script>
-	`, html.EscapeString(newKey), html.EscapeString(user))
+	`, html.EscapeString(newKey), html.EscapeString(targetUser.ID))
 }
 
 // ExpirePreAuthKey handles POST /api/keys/expire
@@ -150,8 +176,34 @@ func (h *Handler) ExpirePreAuthKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// CLI execution using safe variadic arguments
-	cmd := exec.Command("headscale", "--config", ConfigPath, "preauthkeys", "expire", "-u", user, "-k", key)
+	client, err := h.getClient()
+	if err != nil || client == nil {
+		h.renderToast(w, "Failed to load settings.", "error")
+		return
+	}
+
+	// Resolve user identifier to numeric User ID
+	users, apiErr := client.ListUsers()
+	if apiErr != nil {
+		h.renderToast(w, apiErr.Error(), "error")
+		return
+	}
+
+	var targetUser *model.User
+	for i := range users {
+		if users[i].ID == user || users[i].Name == user {
+			targetUser = &users[i]
+			break
+		}
+	}
+
+	if targetUser == nil {
+		h.renderToast(w, "User not found.", "error")
+		return
+	}
+
+	// CLI execution using key string as a positional argument (no -u or -k flags in newer Headscale versions)
+	cmd := exec.Command("headscale", "--config", ConfigPath, "preauthkeys", "expire", key)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
@@ -164,12 +216,36 @@ func (h *Handler) ExpirePreAuthKey(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `
 		<div class="toast toast-success" hx-swap-oob="beforeend:#toast-container">Key expired successfully!</div>
 		<script>HC.refreshKeys('%s');</script>
-	`, html.EscapeString(user))
+	`, html.EscapeString(targetUser.ID))
 }
 
 // Helper to query pre-auth keys via headscale CLI
 func (h *Handler) listKeys(user string) ([]model.PreAuthKey, error) {
-	cmd := exec.Command("headscale", "--config", ConfigPath, "preauthkeys", "list", "-u", user, "-o", "json")
+	client, err := h.getClient()
+	if err != nil || client == nil {
+		return nil, fmt.Errorf("failed to load settings")
+	}
+
+	// 1. Resolve user ID or Name to target User Name (string username) for list filtering
+	users, apiErr := client.ListUsers()
+	if apiErr != nil {
+		return nil, apiErr
+	}
+
+	var targetUser *model.User
+	for i := range users {
+		if users[i].ID == user || users[i].Name == user {
+			targetUser = &users[i]
+			break
+		}
+	}
+
+	if targetUser == nil {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	// 2. Fetch keys globally using CLI (does not support filter flags in newer versions)
+	cmd := exec.Command("headscale", "--config", ConfigPath, "preauthkeys", "list", "-o", "json")
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -183,10 +259,60 @@ func (h *Handler) listKeys(user string) ([]model.PreAuthKey, error) {
 		return []model.PreAuthKey{}, nil
 	}
 
-	var keys []model.PreAuthKey
-	if err := json.Unmarshal(outputBytes, &keys); err != nil {
+	var rawKeys []struct {
+		ID        interface{} `json:"id"`
+		Key       string      `json:"key"`
+		User      struct {
+			ID   interface{} `json:"id"`
+			Name string      `json:"name"`
+		} `json:"user"`
+		Reusable  bool `json:"reusable"`
+		Ephemeral bool `json:"ephemeral"`
+		Used      bool `json:"used"`
+		Expiration struct {
+			Seconds int64 `json:"seconds"`
+			Nanos   int32 `json:"nanos"`
+		} `json:"expiration"`
+		CreatedAt struct {
+			Seconds int64 `json:"seconds"`
+			Nanos   int32 `json:"nanos"`
+		} `json:"created_at"`
+	}
+
+	if err := json.Unmarshal(outputBytes, &rawKeys); err != nil {
 		return nil, fmt.Errorf("failed to parse keys JSON: %w (raw: %s)", err, stdout.String())
 	}
 
-	return keys, nil
+	var keys []model.PreAuthKey
+	for _, raw := range rawKeys {
+		var expStr string
+		if raw.Expiration.Seconds > 0 {
+			expStr = time.Unix(raw.Expiration.Seconds, int64(raw.Expiration.Nanos)).Format(time.RFC3339)
+		}
+		var createdStr string
+		if raw.CreatedAt.Seconds > 0 {
+			createdStr = time.Unix(raw.CreatedAt.Seconds, int64(raw.CreatedAt.Nanos)).Format(time.RFC3339)
+		}
+
+		keys = append(keys, model.PreAuthKey{
+			ID:         fmt.Sprintf("%v", raw.ID),
+			Key:        raw.Key,
+			User:       raw.User.Name,
+			Reusable:   raw.Reusable,
+			Ephemeral:  raw.Ephemeral,
+			Used:       raw.Used,
+			Expiration: expStr,
+			CreatedAt:  createdStr,
+		})
+	}
+
+	// 3. Filter keys matching the resolved username (e.g. key.User == targetUser.Name)
+	var filtered []model.PreAuthKey
+	for _, k := range keys {
+		if k.User == targetUser.Name {
+			filtered = append(filtered, k)
+		}
+	}
+
+	return filtered, nil
 }

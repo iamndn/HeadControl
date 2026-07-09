@@ -70,14 +70,15 @@ type ErrorResponse struct {
 }
 
 type PreAuthKey struct {
-	ID         string `json:"id"`
-	Key        string `json:"key"`
-	User       string `json:"user"`
-	Reusable   bool   `json:"reusable"`
-	Ephemeral  bool   `json:"ephemeral"`
-	Used       bool   `json:"used"`
-	Expiration string `json:"expiration"`
-	CreatedAt  string `json:"createdAt"`
+	ID         string   `json:"id"`
+	Key        string   `json:"key"`
+	User       string   `json:"user"`
+	Reusable   bool     `json:"reusable"`
+	Ephemeral  bool     `json:"ephemeral"`
+	Used       bool     `json:"used"`
+	Expiration string   `json:"expiration"`
+	CreatedAt  string   `json:"createdAt"`
+	Tags       []string `json:"tags"`
 }
 
 type LogLine struct {

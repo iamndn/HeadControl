@@ -43,8 +43,8 @@ func main() {
 	http.HandleFunc("/nodes/table", h.RequireSetup(h.NodesTable))
 	http.HandleFunc("/nodes/detail", h.RequireSetup(h.NodeDetail))
 	http.HandleFunc("/routes/table", h.RequireSetup(h.RoutesTable))
-	http.HandleFunc("/nodes/{id}/edit", h.RequireSetup(h.EditNodeNameForm))
-	http.HandleFunc("/nodes/{id}/rename", h.RequireSetup(h.RenameNodeInline))
+	http.HandleFunc("/nodes/edit", h.RequireSetup(h.EditNodeNameForm))
+	http.HandleFunc("/nodes/rename-inline", h.RequireSetup(h.RenameNodeInline))
 	http.HandleFunc("/keys", h.RequireSetup(h.PreAuthKeysPage))
 	http.HandleFunc("/keys/table", h.RequireSetup(h.PreAuthKeysTable))
 	http.HandleFunc("/logs", h.RequireSetup(h.LogsPage))
@@ -55,6 +55,7 @@ func main() {
 	http.HandleFunc("/api/users/delete", h.RequireSetup(h.DeleteUser))
 
 	http.HandleFunc("/api/nodes/rename", h.RequireSetup(h.RenameNode))
+	http.HandleFunc("/api/nodes/configure", h.RequireSetup(h.ConfigureNode))
 	http.HandleFunc("/api/nodes/expire", h.RequireSetup(h.ExpireNode))
 	http.HandleFunc("/api/nodes/delete", h.RequireSetup(h.DeleteNode))
 	http.HandleFunc("/api/nodes/tags", h.RequireSetup(h.SetNodeTags))

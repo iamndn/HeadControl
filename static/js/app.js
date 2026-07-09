@@ -129,14 +129,16 @@ HC.Modal = {
         }
     },
 
-    openRenameNode(id, name) {
-        const idEl = document.getElementById('rename-node-id');
-        const nameEl = document.getElementById('rename-node-current');
-        const inputEl = document.getElementById('rename-node-newname');
+    openConfigNode(id, name, tags) {
+        const idEl = document.getElementById('config-node-id');
+        const nameEl = document.getElementById('config-node-current');
+        const inputEl = document.getElementById('config-node-newname');
+        const tagsEl = document.getElementById('config-node-tags');
         if (idEl) idEl.value = id;
         if (nameEl) nameEl.textContent = name;
         if (inputEl) inputEl.value = name;
-        this.open('rename-node-modal');
+        if (tagsEl) tagsEl.value = tags || '';
+        this.open('config-node-modal');
     },
 
     openExpireNode(id, name) {

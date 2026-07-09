@@ -41,7 +41,7 @@
                 <tbody>
                     {{range .Nodes}}
                     <tr id="node-row-{{.ID}}">
-                        <td data-cell="Name" id="node-name-cell-{{.ID}}" hx-trigger="dblclick" hx-get="/nodes/{{.ID}}/edit" hx-target="this" hx-swap="innerHTML" style="cursor: pointer;" title="Double click to rename inline">
+                        <td data-cell="Name" id="node-name-cell-{{.ID}}" hx-trigger="dblclick" hx-get="/nodes/edit?id={{.ID}}" hx-target="this" hx-swap="innerHTML" style="cursor: pointer;" title="Double click to rename inline">
                             <strong>{{.GivenName}}</strong>
                             {{if and .Name (ne .Name .GivenName)}}<br><span class="text-muted" style="font-size:0.75rem;">{{.Name}}</span>{{end}}
                         </td>
@@ -74,8 +74,8 @@
                                 <button class="btn btn-ghost btn-sm btn-icon" title="Details" onclick="HC.Modal.openNodeDetail('{{.ID}}')">
                                     <i data-lucide="info"></i>
                                 </button>
-                                <button class="btn btn-ghost btn-sm btn-icon" title="Rename" onclick="HC.Modal.openRenameNode('{{.ID}}', '{{.GivenName}}')">
-                                    <i data-lucide="pencil"></i>
+                                <button class="btn btn-ghost btn-sm btn-icon" title="Configure" onclick="HC.Modal.openConfigNode('{{.ID}}', '{{.GivenName}}', '{{join .Tags ","}}')">
+                                    <i data-lucide="settings"></i>
                                 </button>
                                 <button class="btn btn-ghost btn-sm btn-icon" title="Expire" onclick="HC.Modal.openExpireNode('{{.ID}}', '{{.GivenName}}')">
                                     <i data-lucide="clock"></i>
@@ -116,27 +116,34 @@
     </div>
 </div>
 
-<div class="modal-overlay" id="rename-node-modal" style="display:none;">
+<div class="modal-overlay" id="config-node-modal" style="display:none;">
     <div class="modal">
         <div class="modal-header">
-            <h3 class="modal-title">Rename Node</h3>
-            <button class="modal-close" onclick="HC.Modal.close('rename-node-modal')">
+            <h3 class="modal-title">Configure Device</h3>
+            <button class="modal-close" onclick="HC.Modal.close('config-node-modal')">
                 <i data-lucide="x"></i>
             </button>
         </div>
-        <form hx-post="/api/nodes/rename" hx-target="#toast-container" hx-swap="beforeend" hx-on::after-request="if(event.detail.successful){HC.Modal.close('rename-node-modal');HC.refreshNodes();}">
+        <form hx-post="/api/nodes/configure" hx-target="#toast-container" hx-swap="beforeend" hx-on::after-request="if(event.detail.successful){HC.Modal.close('config-node-modal');HC.refreshNodes();}">
             <div class="modal-body">
-                <input type="hidden" name="nodeId" id="rename-node-id">
-                <p class="mb-4">Renaming node: <strong id="rename-node-current"></strong></p>
+                <input type="hidden" name="nodeId" id="config-node-id">
+                <p class="mb-4">Configuring device: <strong id="config-node-current"></strong></p>
+                
+                <div class="form-group mb-4">
+                    <label class="form-label">Device Name *</label>
+                    <input type="text" name="newName" id="config-node-newname" class="form-input" placeholder="New node name" style="width: 100%; border: 2px solid var(--border); box-shadow: 2px 2px 0 var(--border);" required>
+                </div>
+                
                 <div class="form-group">
-                    <label class="form-label">New Name *</label>
-                    <input type="text" name="newName" id="rename-node-newname" class="form-input" placeholder="New node name" required>
+                    <label class="form-label">ACL Tags</label>
+                    <input type="text" name="tags" id="config-node-tags" class="form-input" placeholder="tag:server,tag:web" style="width: 100%; border: 2px solid var(--border); box-shadow: 2px 2px 0 var(--border);">
+                    <p class="text-muted" style="font-size: 0.75rem; margin-top: 4px;">Comma-separated tags (e.g. tag:server,tag:web)</p>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="HC.Modal.close('rename-node-modal')">Cancel</button>
+                <button type="button" class="btn btn-secondary" onclick="HC.Modal.close('config-node-modal')">Cancel</button>
                 <button type="submit" class="btn btn-primary">
-                    <span class="htmx-hide-on-request">Rename</span>
+                    <span class="htmx-hide-on-request">Save Configuration</span>
                     <span class="htmx-indicator"><span class="spinner"></span></span>
                 </button>
             </div>
