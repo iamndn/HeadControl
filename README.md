@@ -1,175 +1,158 @@
 # HeadControl
 
-Minimal Headscale admin dashboard, built with Go and HTMX.
+Minimal Headscale admin console and dashboard, built with Go, HTMX, and Ace Editor.
 
-*[Baca dalam Bahasa Indonesia](README.id.md) — translated from Indonesian by an AI, if something sounds weird, now you know why.*
-
-This project was made for personal use. I chose Go and HTMX as the foundation
-because I needed something truly lightweight and fast no heavy JavaScript
-frameworks, no complex build pipelines, just a single binary that serves
-everything. If you find it useful or want to modify it for your own setup,
-feel free to do so.
-
-*Disclaimer: I am not particularly good at Go, so if you read the code and wonder
-"why is it done this way?", the answer is most likely "because that is what worked."*
+This project provides a lightweight, highly responsive, and beautiful dashboard to manage your self-hosted **Headscale** server. It relies on Go for the backend, HTMX for zero-reload reactive frontend components, and SQLite for configuration state. 
 
 ---
 
-## Stack
+## 📊 Core Features
 
-- **Go** — HTTP server, API client, template rendering, SQLite storage
-- **HTMX** — partial page updates without writing JavaScript
-- **Lucide Icons** — icon set loaded via CDN
-- **SQLite** — local configuration storage
-
-## Features
-
-- Connect to any Headscale instance via API key
-- Dashboard with node/user statistics
-- User management (create, rename, delete)
-- Node management (rename, expire, delete, tags, routes)
-- Node detail view
-- Multiple color themes
-- Responsive layout (desktop, tablet, mobile)
+- **Dashboard Statistics**: Instant overview of registered users, total nodes, active/online nodes, and nodes nearing expiration.
+- **User Management**: Easily create, rename, and delete Headscale users.
+- **Node Management**: Check node details, rename, force key expiration, delete, configure ACL tags, and approve/enable routes.
+- **🛡️ Integrated ACL Policy Control Panel**:
+  - View and edit security policy JSONs natively using an integrated **Ace Editor** instance.
+  - Interactive syntax validation and error tracking: passes output checks to catch JSON and rule errors instantly.
+  - Premium **Dynamic Theme Syncing**: The Ace Editor automatically shifts its theme (`chrome` / `tomorrow_night`) to match the user's selected dashboard theme in real time.
+  - Safe backend execution: Runs command piping directly via `StdinPipe()` (no temp files created, completely memory-buffered, and protected against shell-command injection).
+- **16 Premium Color Themes**: Includes Light, Dark, Cyberpunk, Dracula, Nord, Synthwave, Terminal, and more.
+- **Responsive Layout**: Designed to look premium across Desktop, Tablet, and Mobile devices.
 
 ---
 
-## Requirements
+## ⚙️ Architectural Highlights
 
-- Go 1.21 or later
-- GCC (required by go-sqlite3, see note below)
-- A running Headscale server with an API key
-
-### GCC on Windows
-
-The `go-sqlite3` driver requires CGO. On Windows, install
-[MSYS2](https://www.msys2.org/) or [TDM-GCC](https://jmeubank.github.io/tdm-gcc/),
-then make sure `gcc` is available in your PATH.
+To support Headscale servers running natively using `mode: database`, HeadControl interfaces with the system's local `headscale` daemon via secure `os/exec` wrappers:
+- **Zero Disk Overhead**: Temporary policy files are never written to disk during saves. Instead, bytes are piped directly into the CLI's standard input stream (`StdinPipe`).
+- **Strict Input Sanitization**: Commands are called with explicit argument slice definitions (`exec.Command("headscale", "--config", "/etc/headscale/config.yaml", ...)`) preventing any command injection vectors.
+- **Stderr Capturing**: Headscale's validation checks and error messages are captured directly from Stderr and processed as HTMX-swapped warnings on the UI.
 
 ---
 
-## Setup
+## 🛠️ Stack
 
-Clone the repository:
+- **Backend**: Go (Go 1.23+)
+- **Frontend Interactivity**: [HTMX](https://htmx.org/) (Zero heavy JS framework overhead)
+- **Code Editor**: [Ace Editor](https://ace.c9.io/) (Syntax highlighting, soft tabs, and dynamic theme switching)
+- **Icons**: Lucide Icons (loaded via CDN)
+- **Database**: SQLite3 (Local storage for HeadControl console configuration settings)
 
-```
-git clone https://github.com/ahmadzip/headcontrol.git
-cd headcontrol
-```
+---
 
-Install dependencies:
+## 🚀 Requirements
 
-```
-go mod tidy
-```
+- **Go 1.23** or later
+- **GCC** (required by `go-sqlite3` driver via CGO)
+- A running **Headscale** server with API key enabled (or local access for the CLI policies)
 
-Build:
+### GCC Installation on Windows
+The `go-sqlite3` driver requires CGO compilation. On Windows, install [MSYS2](https://www.msys2.org/) or [TDM-GCC](https://jmeubank.github.io/tdm-gcc/), then verify that `gcc` is in your system's `PATH`.
 
-```
-go build .
-```
+---
 
-This produces `headcontrol.exe` on Windows or `headcontrol` on Linux/macOS.
+## 💻 Setup & Run
 
-Run:
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/iamndn/HeadControl.git
+   cd HeadControl
+   ```
 
-```
-./headcontrol
-```
+2. **Install dependencies**:
+   ```bash
+   go mod tidy
+   ```
 
-The server starts on `http://localhost:8080` by default.
+3. **Build the binary**:
+   ```bash
+   go build -o headcontrol
+   ```
 
-### Command-line flags
+4. **Run the server**:
+   ```bash
+   ./headcontrol
+   ```
+   By default, the server runs on `http://localhost:8080`.
+
+### Command-line Parameters
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `-port` | `8080` | Server port |
-| `-db` | `headcontrol.db` | SQLite database path |
+| `-port` | `8080` | Server listening port |
+| `-db` | `headcontrol.db` | Path to HeadControl's SQLite configuration database |
 
-Example:
-
-```
-./headcontrol -port 3000 -db /data/headcontrol.db
+Example custom startup:
+```bash
+./headcontrol -port 9000 -db /var/lib/headcontrol/headcontrol.db
 ```
 
 ---
 
-## First Run
+## 🔑 Initial Configuration
 
-1. Open `http://localhost:8080` in your browser.
-2. You will be redirected to the setup page.
-3. Enter your Headscale server URL (e.g. `https://headscale.example.com`).
-4. Enter your API key (created with `headscale apikeys create`).
-5. Click "Test Connection" to verify.
-6. Click "Save" to proceed to the dashboard.
+1. Visit `http://localhost:8080` in your web browser.
+2. You will be automatically redirected to the setup wizard.
+3. Enter your Headscale server base URL (e.g. `https://headscale.yourdomain.com`).
+4. Input your API key (generate one on your headscale machine with `headscale apikeys create`).
+5. Click **Test Connection** to verify settings, then save to enter the console dashboard.
 
 ---
 
-## Development
+## 🧑‍💻 Development Guide
 
-For hot-reload during development, install [Air](https://github.com/air-verse/air):
-
-```
+For automated builds and hot-reload upon saving files, install [Air](https://github.com/air-verse/air):
+```bash
 go install github.com/air-verse/air@latest
 ```
-
-Then run:
-
-```
+Run the development environment:
+```bash
 air
 ```
+Hot-reload logic is configured inside `.air.toml`.
 
-Air watches for file changes and rebuilds automatically.
-The configuration is in `.air.toml`.
-
----
-
-## Project Structure
+### Project Structure
 
 ```
-headcontrol/
-  main.go                          entrypoint, route registration
-  internal/
-    handler/
-      handler.go                   core struct, template engine, middleware
-      helpers.go                   render helpers, time formatting
-      setup.go                     setup page handlers
-      dashboard.go                 dashboard page handlers
-      users.go                     user management handlers
-      nodes.go                     node management handlers
-      settings.go                  settings page handlers
-    headscale/
-      client.go                    headscale API client
-    model/
-      models.go                    data structures
-    store/
-      store.go                     SQLite storage layer
-  templates/
-    layout/layout.html             base layout with sidebar
-    pages/                         full page templates
-    partials/                      HTMX partial templates
-  static/
-    css/app.css                    main stylesheet
-    css/theme/                     color theme files
-    js/app.js                      client-side logic
+HeadControl/
+  ├── main.go                      # Entry point, HTTP route definition
+  ├── internal/
+  │     ├── handler/
+  │     │     ├── handler.go       # Core Handler setup, template renderer, middleware
+  │     │     ├── helpers.go       # Helper utilities, time formatters
+  │     │     ├── setup.go         # Initialization page handlers
+  │     │     ├── dashboard.go     # Dashboard stats handlers
+  │     │     ├── users.go         # User administration handlers
+  │     │     ├── nodes.go         # Node configuration & action handlers
+  │     │     ├── settings.go      # Global settings page handlers
+  │     │     └── policy.go        # ACL policy (CLI show/set) handlers
+  │     ├── headscale/
+  │     │     └── client.go        # Headscale REST API client functions
+  │     ├── model/
+  │     │     └── models.go        # Global structure structs
+  │     └── store/
+  │           └── store.go         # SQLite database persistence layer
+  ├── templates/
+  │     ├── layout/
+  │     │     └── layout.html      # Outer wrapper page layout (Sidebar, themes)
+  │     ├── pages/
+  │     │     ├── dashboard.html   # Dashboard components
+  │     │     ├── nodes.html       # Node listing tables & modal targets
+  │     │     ├── settings.html    # Configuration form layout
+  │     │     ├── setup.html       # Onboarding page
+  │     │     ├── users.html       # User listing tables & creations
+  │     │     └── policy.html      # Ace Editor & HTMX save policy form
+  │     └── partials/              # HTMX components (tables, results, modals)
+  └── static/
+        ├── css/
+        │    ├── app.css           # Global core layout styles
+        │    └── theme/            # Theme color variables
+        └── js/
+             └── app.js            # Frontend logic (theme toggle, sidebar)
 ```
 
 ---
 
-## Themes
+## 📄 License
 
-HeadControl ships with 16 built-in themes. Switch between them using
-the theme selector in the top navigation bar. Your selection is stored
-in localStorage.
-
----
-
-## Feedback
-
-Built during break time. Suggestions, criticism, or pull requests are welcome.
-
----
-
-## License
-
-Do whatever you want with it.
+This project is licensed under the MIT License. Feel free to use, modify, and distribute it.
