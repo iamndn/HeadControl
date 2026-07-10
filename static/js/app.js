@@ -12,6 +12,35 @@ HC.Sidebar = {
         const overlay = document.getElementById('sidebar-overlay');
         if (sidebar) sidebar.classList.remove('open');
         if (overlay) overlay.classList.remove('open');
+    },
+    toggleCollapse() {
+        const body = document.body;
+        body.classList.toggle('sidebar-collapsed');
+        
+        const isCollapsed = body.classList.contains('sidebar-collapsed');
+        localStorage.setItem('hc-sidebar-collapsed', isCollapsed ? 'true' : 'false');
+        
+        const icon = document.getElementById('collapse-icon');
+        if (icon) {
+            if (isCollapsed) {
+                icon.setAttribute('data-lucide', 'chevron-right');
+            } else {
+                icon.setAttribute('data-lucide', 'chevron-left');
+            }
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+    },
+    init() {
+        const collapsed = localStorage.getItem('hc-sidebar-collapsed') === 'true';
+        if (collapsed) {
+            document.body.classList.add('sidebar-collapsed');
+            const icon = document.getElementById('collapse-icon');
+            if (icon) {
+                icon.setAttribute('data-lucide', 'chevron-right');
+            }
+        }
     }
 };
 
@@ -243,6 +272,7 @@ HC.Nav = {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
+    HC.Sidebar.init();
     HC.Theme.init();
     HC.Toast.init();
     HC.Nav.update();

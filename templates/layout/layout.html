@@ -39,38 +39,38 @@
                     <div class="nav-section-title">Menu</div>
                     <a href="/" class="nav-link{{if eq .ActivePage " dashboard"}} active{{end}}" hx-get="/" hx-target=".content" hx-push-url="true">
                         <i data-lucide="layout-grid"></i>
-                        Dashboard
+                        <span>Dashboard</span>
                     </a>
                     <a href="/users" class="nav-link{{if eq .ActivePage " users"}} active{{end}}" hx-get="/users" hx-target=".content" hx-push-url="true">
                         <i data-lucide="users"></i>
-                        Users
+                        <span>Users</span>
                     </a>
                     <a href="/nodes" class="nav-link{{if eq .ActivePage " nodes"}} active{{end}}" hx-get="/nodes" hx-target=".content" hx-push-url="true">
                         <i data-lucide="cpu"></i>
-                        Nodes
+                        <span>Nodes</span>
                     </a>
                     <a href="/routes" class="nav-link{{if eq .ActivePage "routes"}} active{{end}}" hx-get="/routes" hx-target=".content" hx-push-url="true">
                         <i data-lucide="route"></i>
-                        Routes
+                        <span>Routes</span>
                     </a>
                     <a href="/keys" class="nav-link{{if eq .ActivePage "keys"}} active{{end}}" hx-get="/keys" hx-target=".content" hx-push-url="true">
                         <i data-lucide="key"></i>
-                        Pre-Auth Keys
+                        <span>Pre-Auth Keys</span>
                     </a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">System</div>
                     <a href="/policy" class="nav-link{{if eq .ActivePage "policy"}} active{{end}}" hx-get="/policy" hx-target=".content" hx-push-url="true">
                         <i data-lucide="shield"></i>
-                        ACL Policy
+                        <span>ACL Policy</span>
                     </a>
                     <a href="/logs" class="nav-link{{if eq .ActivePage "logs"}} active{{end}}" hx-get="/logs" hx-target=".content" hx-push-url="true">
                         <i data-lucide="terminal"></i>
-                        System Logs
+                        <span>System Logs</span>
                     </a>
                     <a href="/settings" class="nav-link{{if eq .ActivePage "settings"}} active{{end}}" hx-get="/settings" hx-target=".content" hx-push-url="true">
                         <i data-lucide="settings"></i>
-                        Settings
+                        <span>Settings</span>
                     </a>
                 </div>
             </nav>
@@ -83,6 +83,9 @@
                 <div class="topbar-left">
                     <button class="mobile-menu-btn" onclick="HC.Sidebar.toggle()" aria-label="Toggle menu">
                         <i data-lucide="menu"></i>
+                    </button>
+                    <button class="desktop-collapse-btn" onclick="HC.Sidebar.toggleCollapse()" aria-label="Toggle Sidebar">
+                        <i data-lucide="chevron-left" id="collapse-icon"></i>
                     </button>
                     <h1 class="topbar-title">{{.Title}}</h1>
                 </div>
