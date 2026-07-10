@@ -160,6 +160,18 @@
                             </button>
                         </div>
                     </div>
+                    {{if .AdminUser}}
+                    <div style="display: flex; align-items: center; gap: 12px; margin-left: 8px; padding-left: 12px; border-left: 2px solid var(--border);">
+                        <span style="font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="user" style="width: 14px; height: 14px;"></i>
+                            {{.AdminUser}}
+                        </span>
+                        <a href="/logout" style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 700; color: var(--text-tertiary); text-decoration: none; padding: 4px 8px; border: 2px solid var(--border); border-radius: 4px; transition: all 0.15s;" onmouseover="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-tertiary)'">
+                            <i data-lucide="log-out" style="width: 12px; height: 12px;"></i>
+                            Logout
+                        </a>
+                    </div>
+                    {{end}}
                 </div>
             </header>
 

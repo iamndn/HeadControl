@@ -93,3 +93,34 @@ type AuditLog struct {
 	Details   string `json:"details"`
 	Type      string `json:"type"`
 }
+
+type AdminUser struct {
+	ID           int    `json:"id"`
+	Username     string `json:"username"`
+	PasswordHash string `json:"-"`
+	CreatedAt    string `json:"createdAt"`
+}
+
+type Session struct {
+	ID        int    `json:"id"`
+	Token     string `json:"token"`
+	UserID    int    `json:"userId"`
+	Username  string `json:"username"`
+	ExpiresAt string `json:"expiresAt"`
+}
+
+type WebhookConfig struct {
+	ID      int    `json:"id"`
+	URL     string `json:"url"`
+	Events  string `json:"events"`
+	Enabled bool   `json:"enabled"`
+}
+
+type BackupData struct {
+	ExportedAt string     `json:"exportedAt"`
+	Version    string     `json:"version"`
+	Settings   *Settings  `json:"settings,omitempty"`
+	Users      []User     `json:"users,omitempty"`
+	Policy     string     `json:"policy,omitempty"`
+	AuditLogs  []AuditLog `json:"auditLogs,omitempty"`
+}

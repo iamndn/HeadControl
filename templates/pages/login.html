@@ -1,0 +1,173 @@
+{{define "login.html"}}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeadControl — Login</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <link rel="stylesheet" href="/static/css/theme/dark.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        .auth-container {
+            width: 100%;
+            max-width: 440px;
+            padding: 20px;
+        }
+        .auth-card {
+            background: var(--surface);
+            border: var(--border-thick) solid var(--border);
+            box-shadow: var(--shadow-lg);
+            border-radius: var(--radius-md);
+            padding: 40px 36px;
+        }
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .auth-logo-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--primary);
+            color: var(--primary-text);
+            border: var(--border-thick) solid var(--border);
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: 3px 3px 0 var(--border);
+        }
+        .auth-logo h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text);
+            margin: 0;
+            letter-spacing: -0.02em;
+        }
+        .auth-logo p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 6px 0 0 0;
+        }
+        .auth-error {
+            background: var(--danger-bg, #fef2f2);
+            border: 2px solid var(--danger, #ef4444);
+            color: var(--danger, #ef4444);
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .auth-form .form-group {
+            margin-bottom: 20px;
+        }
+        .auth-form .form-label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .auth-form .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 0.9375rem;
+            border: var(--border-thick) solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            color: var(--text);
+            box-shadow: 2px 2px 0 var(--border);
+            outline: none;
+            transition: box-shadow 0.15s;
+            box-sizing: border-box;
+        }
+        .auth-form .form-input:focus {
+            box-shadow: 4px 4px 0 var(--primary);
+            border-color: var(--primary);
+        }
+        .auth-submit {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            border: var(--border-thick) solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--primary);
+            color: var(--primary-text);
+            box-shadow: 3px 3px 0 var(--border);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .auth-submit:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0 var(--border);
+        }
+        .auth-submit:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0 var(--border);
+        }
+        .auth-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <div class="auth-logo-icon">
+                    <i data-lucide="shield-check" style="width:28px;height:28px;"></i>
+                </div>
+                <h1>HeadControl</h1>
+                <p>Sign in to your admin console</p>
+            </div>
+
+            {{if .Error}}
+            <div class="auth-error">
+                <i data-lucide="alert-circle" style="width:16px;height:16px;flex-shrink:0;"></i>
+                <span>{{.Error}}</span>
+            </div>
+            {{end}}
+
+            <form method="POST" action="/login" class="auth-form">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" name="username" class="form-input" value="{{if .Username}}{{.Username}}{{end}}" placeholder="Enter username" required autofocus autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-input" placeholder="Enter password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="auth-submit">Sign In</button>
+            </form>
+
+            <div class="auth-footer">
+                HeadControl Admin Console
+            </div>
+        </div>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
+{{end}}

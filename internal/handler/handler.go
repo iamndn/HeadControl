@@ -100,6 +100,9 @@ func (h *Handler) isHTMX(r *http.Request) bool {
 }
 
 func (h *Handler) renderPage(w http.ResponseWriter, r *http.Request, page string, data map[string]interface{}) {
+	// Auto-inject admin username for layout template
+	data["AdminUser"] = h.GetCurrentUsername(r)
+
 	if h.isHTMX(r) {
 		h.render(w, page+"-content.html", data)
 	} else {

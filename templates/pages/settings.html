@@ -84,4 +84,39 @@
         </button>
     </div>
 </div>
+
+<div class="settings-section">
+    <h3 class="settings-section-title">Backup & Restore</h3>
+    <p class="settings-section-desc">Export or import your HeadControl configuration.</p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px;">
+        <div style="padding: 20px; border: 2px solid var(--border); border-radius: var(--radius-sm); background: var(--bg);">
+            <h4 style="font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text); margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                Export Backup
+            </h4>
+            <p class="text-muted" style="font-size: 0.8125rem; margin: 0 0 16px 0;">Download a JSON backup containing settings, users list, ACL policy, and audit logs.</p>
+            <a href="/api/backup/export" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+                <i data-lucide="hard-drive-download" style="width: 14px; height: 14px;"></i>
+                Download Backup
+            </a>
+        </div>
+
+        <div style="padding: 20px; border: 2px solid var(--border); border-radius: var(--radius-sm); background: var(--bg);">
+            <h4 style="font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text); margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="upload" style="width: 16px; height: 16px;"></i>
+                Import Backup
+            </h4>
+            <p class="text-muted" style="font-size: 0.8125rem; margin: 0 0 16px 0;">Restore settings from a previously exported backup file.</p>
+            <form hx-post="/api/backup/import" hx-target="#backup-feedback" hx-swap="innerHTML" hx-encoding="multipart/form-data" style="display: flex; gap: 8px; align-items: end;">
+                <input type="file" name="backup_file" accept=".json" class="form-input" style="padding: 8px; font-size: 0.8125rem;" required>
+                <button type="submit" class="btn btn-secondary btn-sm" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-lucide="upload-cloud" style="width: 14px; height: 14px;"></i>
+                    Restore
+                </button>
+            </form>
+            <div id="backup-feedback" style="margin-top: 12px;"></div>
+        </div>
+    </div>
+</div>
 {{end}}
