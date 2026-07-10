@@ -147,6 +147,7 @@ func (h *Handler) CreatePreAuthKey(w http.ResponseWriter, r *http.Request) {
 
 	newKey := strings.TrimSpace(stdout.String())
 	
+	h.LogAuditEvent(r, "Create Pre-Auth Key", fmt.Sprintf("Created key for user '%s' (%s), reusable=%t, expiration='%s', tags='%s'", targetUser.Name, targetUser.ID, reusable, expirationStr, tagsCSV))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	
 	// Returns a success toast, renders the new key panel in the placeholder, and triggers a table refresh
@@ -212,6 +213,11 @@ func (h *Handler) ExpirePreAuthKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	keyPrefix := key
+	if len(key) > 12 {
+		keyPrefix = key[:12] + "..."
+	}
+	h.LogAuditEvent(r, "Expire Pre-Auth Key", fmt.Sprintf("Expired key '%s' for user '%s' (%s)", keyPrefix, targetUser.Name, targetUser.ID))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, `
 		<div class="toast toast-success" hx-swap-oob="beforeend:#toast-container">Key expired successfully!</div>

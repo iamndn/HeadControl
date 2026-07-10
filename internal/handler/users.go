@@ -68,6 +68,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.LogAuditEvent(r, "Create User", "Created user: "+name)
 	h.renderToast(w, "User '"+name+"' created successfully!", "success")
 }
 
@@ -96,6 +97,7 @@ func (h *Handler) RenameUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.LogAuditEvent(r, "Rename User", "Renamed user ID '"+oldID+"' to '"+newName+"'")
 	h.renderToast(w, "User renamed to '"+newName+"' successfully!", "success")
 }
 
@@ -122,5 +124,6 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.LogAuditEvent(r, "Delete User", "Deleted user ID: "+id)
 	h.renderToast(w, "User deleted successfully!", "success")
 }

@@ -118,6 +118,7 @@ func (h *Handler) ApproveRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.LogAuditEvent(r, "Approve Route", fmt.Sprintf("Approved route ID '%d' (%s) for node ID '%s'", routeID, targetRoute.Prefix, nodeID))
 	h.renderToast(w, "Route approved successfully!", "success")
 }
 
@@ -197,6 +198,7 @@ func (h *Handler) RejectRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.LogAuditEvent(r, "Reject Route", fmt.Sprintf("Rejected/Disabled route ID '%d' (%s) for node ID '%s'", routeID, targetRoute.Prefix, nodeID))
 	h.renderToast(w, "Route rejected/disabled successfully!", "success")
 }
 

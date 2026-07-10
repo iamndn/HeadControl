@@ -85,3 +85,11 @@ type LogLine struct {
 	Text  string
 	Color string
 }
+
+type AuditLog struct {
+	Timestamp string `json:"timestamp"`
+	IP        string `json:"ip"`
+	Action    string `json:"action"`
+	Details   string `json:"details"`
+	Type      string `json:"type"`
+}

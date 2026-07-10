@@ -3,11 +3,15 @@ package handler
 import (
 	"bytes"
 	"fmt"
-	"html"
 	"headcontrol/internal/model"
+	"html"
+	"log"
 	"net/http"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
+	"time"
 )
 
 // LogsPage renders the audit logs page
@@ -18,10 +22,16 @@ func (h *Handler) LogsPage(w http.ResponseWriter, r *http.Request) {
 		errMsg = err.Error()
 	}
 
+	auditLogs, err := h.getAuditLogs()
+	if err != nil {
+		log.Printf("failed to load audit logs: %v", err)
+	}
+
 	h.renderPage(w, r, "logs", map[string]interface{}{
 		"Title":      "System Logs",
 		"ActivePage": "logs",
 		"Logs":       logs,
+		"AuditLogs":  auditLogs,
 		"Error":      errMsg,
 	})
 }
@@ -39,6 +49,91 @@ func (h *Handler) LogsRaw(w http.ResponseWriter, r *http.Request) {
 	for _, line := range logs {
 		fmt.Fprintf(w, `<div style="color: %s;">%s</div>`, line.Color, html.EscapeString(line.Text))
 	}
+}
+
+// LogsAudit returns only the audit logs timeline feed for HTMX refresh
+func (h *Handler) LogsAudit(w http.ResponseWriter, r *http.Request) {
+	auditLogs, err := h.getAuditLogs()
+	if err != nil {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write([]byte("<div class='error-banner'>Failed to load audit trail.</div>"))
+		return
+	}
+
+	h.render(w, "audit-feed.html", map[string]interface{}{
+		"AuditLogs": auditLogs,
+	})
+}
+
+// LogAuditEvent records a structured audit event to a local log file
+func (h *Handler) LogAuditEvent(r *http.Request, action, details string) {
+	ip := r.RemoteAddr
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		ip = strings.Split(xff, ",")[0]
+	}
+
+	timestamp := time.Now().Format("2006-01-02 15:04:05")
+	logLine := fmt.Sprintf("%s [AUDIT] %s - %s - %s\n", timestamp, ip, action, details)
+
+	auditLogPath := filepath.Join(".", "audit.log")
+	f, err := os.OpenFile(auditLogPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Printf("failed to open audit log file: %v", err)
+		return
+	}
+	defer f.Close()
+
+	if _, err := f.WriteString(logLine); err != nil {
+		log.Printf("failed to write to audit log file: %v", err)
+	}
+}
+
+// Helper to read and parse local audit logs
+func (h *Handler) getAuditLogs() ([]model.AuditLog, error) {
+	auditLogPath := filepath.Join(".", "audit.log")
+	if _, err := os.Stat(auditLogPath); os.IsNotExist(err) {
+		return []model.AuditLog{}, nil
+	}
+
+	data, err := os.ReadFile(auditLogPath)
+	if err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(string(data), "\n")
+	var logs []model.AuditLog
+
+	// Read in reverse order (newest first)
+	for i := len(lines) - 1; i >= 0; i-- {
+		line := strings.TrimSpace(lines[i])
+		if line == "" {
+			continue
+		}
+
+		parts := strings.SplitN(line, " [AUDIT] ", 2)
+		if len(parts) < 2 {
+			continue
+		}
+		timestamp := parts[0]
+
+		restParts := strings.SplitN(parts[1], " - ", 3)
+		if len(restParts) < 3 {
+			continue
+		}
+		ip := restParts[0]
+		action := restParts[1]
+		details := restParts[2]
+
+		logs = append(logs, model.AuditLog{
+			Timestamp: timestamp,
+			IP:        ip,
+			Action:    action,
+			Details:   details,
+			Type:      getAuditLogType(action),
+		})
+	}
+
+	return logs, nil
 }
 
 // Helper to execute journalctl command and get log lines
@@ -92,4 +187,15 @@ func (h *Handler) getSystemLogs() ([]model.LogLine, error) {
 	}
 
 	return logLines, nil
+}
+
+func getAuditLogType(action string) string {
+	lower := strings.ToLower(action)
+	if strings.Contains(lower, "delete") || strings.Contains(lower, "expire") || strings.Contains(lower, "reject") {
+		return "danger"
+	}
+	if strings.Contains(lower, "create") || strings.Contains(lower, "approve") {
+		return "success"
+	}
+	return "info"
 }

@@ -64,5 +64,6 @@ func (h *Handler) SavePolicyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.LogAuditEvent(r, "Update ACL Policy", "Saved new ACL configuration rules")
 	w.Write([]byte("<div class='p-4 mb-4 text-sm text-green-800 bg-green-50 rounded-lg'>🛡️ Đã áp dụng chính sách bảo mật mới thành công!</div>"))
 }

@@ -1,13 +1,9 @@
 {{define "logs-content.html"}}
 <div class="page-header">
     <div class="page-header-info">
-        <h2>System Logs</h2>
-        <p>View Headscale service audit logs and daemon output history</p>
+        <h2>System Logs & Audit Trail</h2>
+        <p>View Headscale panel audit events and daemon service logs</p>
     </div>
-    <button class="btn btn-primary btn-sm" hx-get="/logs/raw" hx-target="#terminal-screen" hx-swap="innerHTML" style="display: flex; align-items: center; gap: 8px;">
-        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
-        <span>Refresh Logs</span>
-    </button>
 </div>
 
 {{if .Error}}
@@ -17,23 +13,53 @@
 </div>
 {{else}}
 
-<div class="table-card" style="padding: 0; border: var(--border-thick) solid var(--border); box-shadow: var(--shadow-lg); overflow: hidden; border-radius: var(--radius-md);">
-    <!-- Terminal Header -->
-    <div style="background: #1e1e2e; color: #a6adc8; padding: 12px 18px; border-bottom: var(--border-width) solid var(--border); display: flex; align-items: center; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; user-select: none;">
-        <div style="display: flex; gap: 8px; align-items: center;">
-            <span style="width: 12px; height: 12px; background: #ef4444; border: 1.5px solid var(--border); border-radius: 50%; display: inline-block;"></span>
-            <span style="width: 12px; height: 12px; background: #fbbf24; border: 1.5px solid var(--border); border-radius: 50%; display: inline-block;"></span>
-            <span style="width: 12px; height: 12px; background: #10b981; border: 1.5px solid var(--border); border-radius: 50%; display: inline-block;"></span>
-            <span style="margin-left: 8px; font-weight: 700; color: #cdd6f4; letter-spacing: 0.02em;">headscale.service</span>
-        </div>
-        <div style="font-weight: 600;">bash — active (200 lines)</div>
+<!-- Segmented Tab Controls -->
+<div style="display: flex; gap: 8px; border-bottom: 2px solid var(--border); margin-bottom: 24px; padding-bottom: 8px;">
+    <button id="tab-btn-audit" class="btn btn-primary" onclick="switchLogsTab('audit')" style="font-weight: 700; border-radius: 4px; box-shadow: none; display: flex; align-items: center; gap: 8px;">
+        <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+        <span>Audit Trail</span>
+    </button>
+    <button id="tab-btn-daemon" class="btn btn-ghost" onclick="switchLogsTab('daemon')" style="font-weight: 700; border-radius: 4px; box-shadow: none; display: flex; align-items: center; gap: 8px;">
+        <i data-lucide="terminal" style="width: 16px; height: 16px;"></i>
+        <span>Daemon Console</span>
+    </button>
+</div>
+
+<!-- Tab Pane 1: Audit Events Timeline (Default) -->
+<div id="tab-pane-audit" style="display: block;">
+    <div id="audit-feed-container">
+        {{template "audit-feed.html" .}}
     </div>
-    
-    <!-- Terminal Body -->
-    <div id="terminal-screen" style="background: #09090e; color: #cdd6f4; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; line-height: 1.6; padding: 24px; min-height: 520px; max-height: 650px; overflow-y: auto; overflow-x: auto; white-space: pre-wrap; word-break: break-all;">
-        {{range .Logs}}
-        <div style="color: {{.Color}}; margin-bottom: 4px; font-weight: 500;">{{.Text}}</div>
-        {{end}}
+</div>
+
+<!-- Tab Pane 2: Daemon Console (Terminal Screen, Hidden) -->
+<div id="tab-pane-daemon" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0; font-size: 1.125rem;">headscale.service output</h3>
+        <button class="btn btn-primary btn-sm" hx-get="/logs/raw" hx-target="#terminal-screen" hx-swap="innerHTML" style="display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+            <span>Refresh Console</span>
+        </button>
+    </div>
+
+    <div class="table-card" style="padding: 0; border: var(--border-thick) solid var(--border); box-shadow: var(--shadow-lg); overflow: hidden; border-radius: var(--radius-md);">
+        <!-- Terminal Header -->
+        <div style="background: #1e1e2e; color: #a6adc8; padding: 12px 18px; border-bottom: var(--border-width) solid var(--border); display: flex; align-items: center; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; user-select: none;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span style="width: 12px; height: 12px; background: #ef4444; border: 1.5px solid var(--border); border-radius: 50%; display: inline-block;"></span>
+                <span style="width: 12px; height: 12px; background: #fbbf24; border: 1.5px solid var(--border); border-radius: 50%; display: inline-block;"></span>
+                <span style="width: 12px; height: 12px; background: #10b981; border: 1.5px solid var(--border); border-radius: 50%; display: inline-block;"></span>
+                <span style="margin-left: 8px; font-weight: 700; color: #cdd6f4; letter-spacing: 0.02em;">headscale.service</span>
+            </div>
+            <div style="font-weight: 600;">bash — active (200 lines)</div>
+        </div>
+        
+        <!-- Terminal Body -->
+        <div id="terminal-screen" style="background: #09090e; color: #cdd6f4; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; line-height: 1.6; padding: 24px; min-height: 520px; max-height: 650px; overflow-y: auto; overflow-x: auto; white-space: pre-wrap; word-break: break-all;">
+            {{range .Logs}}
+            <div style="color: {{.Color}}; margin-bottom: 4px; font-weight: 500;">{{.Text}}</div>
+            {{end}}
+        </div>
     </div>
 </div>
 
@@ -50,6 +76,29 @@
             });
         }
     })();
+
+    function switchLogsTab(tab) {
+        const btnAudit = document.getElementById('tab-btn-audit');
+        const btnDaemon = document.getElementById('tab-btn-daemon');
+        const paneAudit = document.getElementById('tab-pane-audit');
+        const paneDaemon = document.getElementById('tab-pane-daemon');
+
+        if (tab === 'audit') {
+            btnAudit.className = 'btn btn-primary';
+            btnDaemon.className = 'btn btn-ghost';
+            paneAudit.style.display = 'block';
+            paneDaemon.style.display = 'none';
+        } else {
+            btnAudit.className = 'btn btn-ghost';
+            btnDaemon.className = 'btn btn-primary';
+            paneAudit.style.display = 'none';
+            paneDaemon.style.display = 'block';
+            
+            // Re-scroll terminal to bottom when it becomes visible
+            const term = document.getElementById("terminal-screen");
+            if (term) term.scrollTop = term.scrollHeight;
+        }
+    }
 </script>
 {{end}}
 {{end}}

@@ -64,13 +64,13 @@
                         <i data-lucide="shield"></i>
                         ACL Policy
                     </a>
-                    <a href="/settings" class="nav-link{{if eq .ActivePage "settings"}} active{{end}}" hx-get="/settings" hx-target=".content" hx-push-url="true">
-                        <i data-lucide="settings"></i>
-                        Settings
-                    </a>
                     <a href="/logs" class="nav-link{{if eq .ActivePage "logs"}} active{{end}}" hx-get="/logs" hx-target=".content" hx-push-url="true">
                         <i data-lucide="terminal"></i>
                         System Logs
+                    </a>
+                    <a href="/settings" class="nav-link{{if eq .ActivePage "settings"}} active{{end}}" hx-get="/settings" hx-target=".content" hx-push-url="true">
+                        <i data-lucide="settings"></i>
+                        Settings
                     </a>
                 </div>
             </nav>

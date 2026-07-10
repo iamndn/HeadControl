@@ -49,6 +49,7 @@ func main() {
 	http.HandleFunc("/keys/table", h.RequireSetup(h.PreAuthKeysTable))
 	http.HandleFunc("/logs", h.RequireSetup(h.LogsPage))
 	http.HandleFunc("/logs/raw", h.RequireSetup(h.LogsRaw))
+	http.HandleFunc("/logs/audit", h.RequireSetup(h.LogsAudit))
 
 	http.HandleFunc("/api/users/create", h.RequireSetup(h.CreateUser))
 	http.HandleFunc("/api/users/rename", h.RequireSetup(h.RenameUser))

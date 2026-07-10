@@ -97,6 +97,7 @@ func (h *Handler) RenameNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.LogAuditEvent(r, "Rename Device", "Renamed device ID '"+nodeID+"' to '"+newName+"'")
 	h.renderToast(w, "Node renamed to '"+newName+"' successfully!", "success")
 }
 
@@ -123,6 +124,7 @@ func (h *Handler) ExpireNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.LogAuditEvent(r, "Expire Device", "Expired device ID: "+nodeID)
 	h.renderToast(w, "Node expired successfully!", "success")
 }
 
@@ -149,6 +151,7 @@ func (h *Handler) DeleteNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.LogAuditEvent(r, "Delete Device", "Deleted device ID: "+nodeID)
 	h.renderToast(w, "Node deleted successfully!", "success")
 }
 
@@ -177,6 +180,7 @@ func (h *Handler) SetNodeTags(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.LogAuditEvent(r, "Update Tags", fmt.Sprintf("Updated device ID '%s' tags to: %s", nodeID, strings.Join(tags, ",")))
 	h.renderToast(w, "Tags updated successfully!", "success")
 }
 
@@ -308,6 +312,7 @@ func (h *Handler) RenameNodeInline(w http.ResponseWriter, r *http.Request) {
 		nameSpan = fmt.Sprintf(`<br><span class="text-muted" style="font-size:0.75rem;">%s</span>`, html.EscapeString(updatedNode.Name))
 	}
 
+	h.LogAuditEvent(r, "Rename Device (Inline)", "Renamed device ID '"+nodeID+"' inline to '"+newName+"'")
 	fmt.Fprintf(w, `<strong>%s</strong>%s
 	<div class="toast toast-success" hx-swap-oob="beforeend:#toast-container">Device renamed to '%s' successfully!</div>`,
 		html.EscapeString(updatedNode.GivenName), nameSpan, html.EscapeString(updatedNode.GivenName))
@@ -366,5 +371,6 @@ func (h *Handler) ConfigureNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.LogAuditEvent(r, "Configure Device", fmt.Sprintf("Configured device ID '%s': name='%s', tags='%s'", nodeID, newName, tagsCSV))
 	h.renderToast(w, "Device configured successfully!", "success")
 }
