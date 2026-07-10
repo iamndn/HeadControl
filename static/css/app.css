@@ -384,7 +384,7 @@ select.form-input {
   left: 0;
   bottom: 0;
   z-index: 100;
-  transition: transform var(--transition-base);
+  transition: width var(--transition-base), transform var(--transition-base);
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -550,71 +550,7 @@ select.form-input {
   height: 24px;
 }
 
-.desktop-collapse-btn {
-  display: flex;
-  background: none;
-  border: var(--border-width) solid var(--border);
-  color: var(--text-primary);
-  cursor: pointer;
-  padding: 6px;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-sm);
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast);
-}
 
-.desktop-collapse-btn:hover {
-  background: var(--accent-bg);
-  color: var(--accent);
-  transform: translate(-1px, -1px);
-  box-shadow: var(--shadow-md);
-}
-
-.desktop-collapse-btn:active {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0 var(--border);
-}
-
-.desktop-collapse-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-/* Sidebar Collapsed State Rules */
-body.sidebar-collapsed {
-  --sidebar-width: 76px;
-}
-
-body.sidebar-collapsed .sidebar-brand {
-  font-size: 0;
-}
-
-body.sidebar-collapsed .sidebar-brand::before {
-  content: "HC";
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  display: block;
-}
-
-body.sidebar-collapsed .nav-section-title {
-  display: none;
-}
-
-body.sidebar-collapsed .nav-link {
-  justify-content: center;
-  padding: 12px 0;
-  margin: 4px 0;
-}
-
-body.sidebar-collapsed .nav-link span {
-  display: none;
-}
-
-body.sidebar-collapsed .nav-badge {
-  display: none;
-}
 
 .theme-dropdown {
   position: relative;
@@ -1392,6 +1328,19 @@ tbody tr:hover {
   flex-direction: column;
 }
 
+.pane-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.columns-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
 .detail-row {
   display: flex;
   justify-content: space-between;
@@ -1459,27 +1408,16 @@ tbody tr:hover {
   .sidebar.open { transform: translateX(0); }
   .main-area { margin-left: 0; }
   .mobile-menu-btn { display: flex; }
-  .desktop-collapse-btn { display: none !important; }
 
-  /* Override collapsed state on mobile so sidebar opens normally */
-  body.sidebar-collapsed {
-    --sidebar-width: 260px;
+
+  .pane-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
-  body.sidebar-collapsed .sidebar-brand {
-    font-size: 1.2rem;
-  }
-  body.sidebar-collapsed .sidebar-brand::before {
-    content: none;
-  }
-  body.sidebar-collapsed .nav-section-title {
-    display: block;
-  }
-  body.sidebar-collapsed .nav-link {
-    justify-content: flex-start;
-    padding: 10px 12px;
-  }
-  body.sidebar-collapsed .nav-link span {
-    display: inline;
+
+  .columns-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .topbar { padding: 12px 16px; }
