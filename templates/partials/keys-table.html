@@ -61,7 +61,7 @@
                     <td data-cell="Actions" style="padding: 14px 16px;">
                         <div class="btn-group">
                             <button class="btn btn-ghost btn-sm text-danger" 
-                                    hx-post="/api/keys/expire?user={{.User}}&key={{.Key}}" 
+                                    hx-post="/api/keys/expire?user={{.User}}&key={{.Key}}&id={{.ID}}" 
                                     hx-target="#toast-container" 
                                     hx-swap="beforeend">
                                 <i data-lucide="clock" style="width: 14px; height: 14px; margin-right: 4px;"></i>

@@ -171,9 +171,10 @@ func (h *Handler) ExpirePreAuthKey(w http.ResponseWriter, r *http.Request) {
 
 	user := r.FormValue("user")
 	key := r.FormValue("key")
+	id := r.FormValue("id")
 
-	if user == "" || key == "" {
-		h.renderToast(w, "User and key are required.", "error")
+	if user == "" || (key == "" && id == "") {
+		h.renderToast(w, "User and key identifier are required.", "error")
 		return
 	}
 
@@ -203,8 +204,13 @@ func (h *Handler) ExpirePreAuthKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// CLI execution using key string as a positional argument (no -u or -k flags in newer Headscale versions)
-	cmd := exec.Command("headscale", "--config", ConfigPath, "preauthkeys", "expire", key)
+	// CLI execution using key ID or key string depending on parameter
+	var cmd *exec.Cmd
+	if id != "" {
+		cmd = exec.Command("headscale", "--config", ConfigPath, "preauthkeys", "expire", "--id", id)
+	} else {
+		cmd = exec.Command("headscale", "--config", ConfigPath, "preauthkeys", "expire", key)
+	}
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
@@ -217,7 +223,7 @@ func (h *Handler) ExpirePreAuthKey(w http.ResponseWriter, r *http.Request) {
 	if len(key) > 12 {
 		keyPrefix = key[:12] + "..."
 	}
-	h.LogAuditEvent(r, "Expire Pre-Auth Key", fmt.Sprintf("Expired key '%s' for user '%s' (%s)", keyPrefix, targetUser.Name, targetUser.ID))
+	h.LogAuditEvent(r, "Expire Pre-Auth Key", fmt.Sprintf("Expired key '%s' (ID: %s) for user '%s' (%s)", keyPrefix, id, targetUser.Name, targetUser.ID))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, `
 		<div class="toast toast-success" hx-swap-oob="beforeend:#toast-container">Key expired successfully!</div>
