@@ -13,7 +13,7 @@ func main() {
 	dbPath := flag.String("db", "headcontrol.db", "SQLite database path")
 	flag.Parse()
 
-	s, err := store.New(*dbPath)
+	s, err := store.NewSqlite(*dbPath)
 	if err != nil {
 		log.Fatalf("database: %v", err)
 	}

@@ -10,11 +10,11 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-type Store struct {
+type Sqlite struct {
 	db *sql.DB
 }
 
-func New(dbPath string) (*Store, error) {
+func NewSqlite(dbPath string) (*Sqlite, error) {
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		return nil, err
@@ -23,14 +23,14 @@ func New(dbPath string) (*Store, error) {
 		return nil, err
 	}
 
-	s := &Store{db: db}
+	s := &Sqlite{db: db}
 	if err := s.migrate(); err != nil {
 		return nil, err
 	}
 	return s, nil
 }
 
-func (s *Store) migrate() error {
+func (s *Sqlite) migrate() error {
 	_, err := s.db.Exec(`
 		CREATE TABLE IF NOT EXISTS settings (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,7 +70,7 @@ func (s *Store) migrate() error {
 
 // --- Settings ---
 
-func (s *Store) GetSettings() (*model.Settings, error) {
+func (s *Sqlite) GetSettings() (*model.Settings, error) {
 	var st model.Settings
 	err := s.db.QueryRow(
 		"SELECT id, base_url, api_key, created_at, updated_at FROM settings ORDER BY id DESC LIMIT 1",
@@ -85,7 +85,7 @@ func (s *Store) GetSettings() (*model.Settings, error) {
 	return &st, nil
 }
 
-func (s *Store) SaveSettings(baseURL, apiKey string) error {
+func (s *Sqlite) SaveSettings(baseURL, apiKey string) error {
 	existing, err := s.GetSettings()
 	if err != nil {
 		return err
@@ -107,20 +107,20 @@ func (s *Store) SaveSettings(baseURL, apiKey string) error {
 	return err
 }
 
-func (s *Store) HasSettings() bool {
+func (s *Sqlite) HasSettings() bool {
 	st, err := s.GetSettings()
 	return err == nil && st != nil
 }
 
 // --- Admin Users ---
 
-func (s *Store) HasAdmins() bool {
+func (s *Sqlite) HasAdmins() bool {
 	var count int
 	err := s.db.QueryRow("SELECT COUNT(*) FROM admin_users").Scan(&count)
 	return err == nil && count > 0
 }
 
-func (s *Store) CreateAdmin(username, passwordHash string) error {
+func (s *Sqlite) CreateAdmin(username, passwordHash string) error {
 	_, err := s.db.Exec(
 		"INSERT INTO admin_users (username, password_hash) VALUES (?, ?)",
 		username, passwordHash,
@@ -128,7 +128,7 @@ func (s *Store) CreateAdmin(username, passwordHash string) error {
 	return err
 }
 
-func (s *Store) GetAdminByUsername(username string) (*model.AdminUser, error) {
+func (s *Sqlite) GetAdminByUsername(username string) (*model.AdminUser, error) {
 	var u model.AdminUser
 	err := s.db.QueryRow(
 		"SELECT id, username, password_hash, created_at FROM admin_users WHERE username = ?",
@@ -154,7 +154,7 @@ func generateToken() (string, error) {
 	return hex.EncodeToString(b), nil
 }
 
-func (s *Store) CreateSession(userID int, duration time.Duration) (string, error) {
+func (s *Sqlite) CreateSession(userID int, duration time.Duration) (string, error) {
 	token, err := generateToken()
 	if err != nil {
 		return "", err
@@ -171,7 +171,7 @@ func (s *Store) CreateSession(userID int, duration time.Duration) (string, error
 	return token, nil
 }
 
-func (s *Store) GetSession(token string) (*model.Session, error) {
+func (s *Sqlite) GetSession(token string) (*model.Session, error) {
 	var sess model.Session
 	var expiresAtStr string
 	err := s.db.QueryRow(
@@ -200,23 +200,23 @@ func (s *Store) GetSession(token string) (*model.Session, error) {
 	return &sess, nil
 }
 
-func (s *Store) DeleteSession(token string) error {
+func (s *Sqlite) DeleteSession(token string) error {
 	_, err := s.db.Exec("DELETE FROM sessions WHERE token = ?", token)
 	return err
 }
 
-func (s *Store) DeleteUserSessions(userID int) error {
+func (s *Sqlite) DeleteUserSessions(userID int) error {
 	_, err := s.db.Exec("DELETE FROM sessions WHERE user_id = ?", userID)
 	return err
 }
 
-func (s *Store) CleanExpiredSessions() {
+func (s *Sqlite) CleanExpiredSessions() {
 	s.db.Exec("DELETE FROM sessions WHERE expires_at < ?", time.Now().Format(time.RFC3339))
 }
 
 // --- Webhook Config ---
 
-func (s *Store) GetWebhookConfig() (*model.WebhookConfig, error) {
+func (s *Sqlite) GetWebhookConfig() (*model.WebhookConfig, error) {
 	var wh model.WebhookConfig
 	err := s.db.QueryRow(
 		"SELECT id, url, events, enabled FROM webhook_config ORDER BY id DESC LIMIT 1",
@@ -231,7 +231,7 @@ func (s *Store) GetWebhookConfig() (*model.WebhookConfig, error) {
 	return &wh, nil
 }
 
-func (s *Store) SaveWebhookConfig(url, events string, enabled bool) error {
+func (s *Sqlite) SaveWebhookConfig(url, events string, enabled bool) error {
 	existing, err := s.GetWebhookConfig()
 	if err != nil {
 		return err
@@ -257,6 +257,6 @@ func (s *Store) SaveWebhookConfig(url, events string, enabled bool) error {
 	return err
 }
 
-func (s *Store) Close() error {
+func (s *Sqlite) Close() error {
 	return s.db.Close()
 }

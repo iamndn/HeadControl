@@ -14,11 +14,11 @@ import (
 )
 
 type Handler struct {
-	store     *store.Store
+	store     store.Store
 	templates *template.Template
 }
 
-func New(s *store.Store, templateDir string) (*Handler, error) {
+func New(s store.Store, templateDir string) (*Handler, error) {
 	funcMap := template.FuncMap{
 		"join": strings.Join,
 		"json": func(v interface{}) template.JS {
