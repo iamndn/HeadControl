@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"embed"
 	"encoding/json"
 	"headcontrol/internal/headscale"
 	"headcontrol/internal/model"
@@ -8,7 +9,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -18,7 +18,7 @@ type Handler struct {
 	templates *template.Template
 }
 
-func New(s store.Store, templateDir string) (*Handler, error) {
+func New(s store.Store, templatesFS embed.FS) (*Handler, error) {
 	funcMap := template.FuncMap{
 		"join": strings.Join,
 		"json": func(v interface{}) template.JS {
@@ -56,10 +56,12 @@ func New(s store.Store, templateDir string) (*Handler, error) {
 	}
 
 	tmpl := template.New("").Funcs(funcMap)
-	for _, p := range []string{"layout", "pages", "partials"} {
-		if _, err := tmpl.ParseGlob(filepath.Join(templateDir, p, "*.html")); err != nil {
-			log.Printf("parse %s: %v", p, err)
-		}
+	if _, err := tmpl.ParseFS(templatesFS,
+		"templates/layout/*.html",
+		"templates/pages/*.html",
+		"templates/partials/*.html",
+	); err != nil {
+		return nil, err
 	}
 
 	return &Handler{store: s, templates: tmpl}, nil

@@ -7,7 +7,7 @@ func (h *Handler) SetupPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	h.renderFile(w, "templates/pages/setup.html", nil)
+	h.render(w, "setup.html", nil)
 }
 
 func (h *Handler) TestConnection(w http.ResponseWriter, r *http.Request) {

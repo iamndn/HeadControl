@@ -1,12 +1,21 @@
 package main
 
 import (
+	"embed"
 	"flag"
 	"headcontrol/internal/handler"
 	"headcontrol/internal/store"
+	"io/fs"
 	"log"
+	"mime"
 	"net/http"
 )
+
+//go:embed templates/layout/*.html templates/pages/*.html templates/partials/*.html
+var templatesFS embed.FS
+
+//go:embed static
+var staticFiles embed.FS
 
 func main() {
 	port := flag.String("port", "8080", "Server port")
@@ -19,12 +28,20 @@ func main() {
 	}
 	defer s.Close()
 
-	h, err := handler.New(s, "templates")
+	h, err := handler.New(s, templatesFS)
 	if err != nil {
 		log.Fatalf("templates: %v", err)
 	}
 
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	mime.AddExtensionType(".js", "application/javascript")
+	mime.AddExtensionType(".mjs", "application/javascript")
+	mime.AddExtensionType(".css", "text/css")
+
+	staticFS, err := fs.Sub(staticFiles, "static")
+	if err != nil {
+		log.Fatalf("static files: %v", err)
+	}
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
 
 	// Auth routes (no auth required) — handle both GET (page) and POST (form submit)
 	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
